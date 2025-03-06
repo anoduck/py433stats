@@ -31,8 +31,8 @@ int processCmdLine(int argc, char* argv[]) {
     char* desc;
   };
 
-  struct myOption long_opt[] = 
-    {  
+  struct myOption long_opt[] =
+    {
       {"help",       optional_argument, NULL, 'h', "This help message"},
       {"file",       required_argument, NULL, 'f', "-f <path>: source data file to process"},
       {"start",      required_argument, NULL, 's', "-s <date>: date-time of first record to process, in form YYYY-MM-DD HH:MM:SS"},
@@ -45,7 +45,7 @@ int processCmdLine(int argc, char* argv[]) {
   // Set default values for options, then check for command-line values
   dFirst     = 0;                 // Process all dates
   dLast      = 0x7FFFFFFF;        // Process all dates; watch for neg 64-bit time
-  
+
   //  If no options provided, simulate "-h"
   c = getopt_long(argc, argv, short_opt, (const struct option *)long_opt, NULL);
   if (c == -1) c = 'h';
@@ -67,7 +67,7 @@ int processCmdLine(int argc, char* argv[]) {
 	return(-1);
 	};
       break;
-      
+
       case 's':
 	memset(&tm, 0, sizeof(struct tm));
 	strptime(optarg, "%Y-%m-%d %H:%M:%S", &tm);
@@ -102,4 +102,3 @@ int processCmdLine(int argc, char* argv[]) {
 
   return(0);
 };
-

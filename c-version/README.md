@@ -8,8 +8,8 @@ Catalog and analyze transmissions from devices recorded in rtl_433 JSON logs
 
 * read the packet information as recorded by rtl\_433 in a JSON log file,
 * catalog all devices recorded in that log,
-* count the packets and consolidate redundant packets into an individual transmission, 
-* summarize the statistics about packet signal-to-noise ratios (SNR) in the packets observed. 
+* count the packets and consolidate redundant packets into an individual transmission,
+* summarize the statistics about packet signal-to-noise ratios (SNR) in the packets observed.
 
 Sample output looks like this:
 
@@ -42,14 +42,14 @@ Issue the command `snr -f <JSON filename>` to generate the report; `snr -h` show
 `rtl_433_stats` reads the JSON log file created by rtl\_433 (recommend to stop rtl_433 so that the JSON log file is closed for processing). The observed devices, as recorded in the JSON file in temporal order, are cataloged in alphabetical order in a summary table.  The summary includes a count of the number of packets and de-duplicated transmissions seen for that device and basic statistics for the signal-to-noise ratios:
 
 * count of samples,
-* mean, 
-* std deviation, 
-* min value seen, and 
+* mean,
+* std deviation,
+* min value seen, and
 * max value seen.
 
-JSON log times are expected to be in the format "HH:MM:SS", to the nearest second with no fractional part.  
+JSON log times are expected to be in the format "HH:MM:SS", to the nearest second with no fractional part.
 
-`snr` summarizes information only for the first packet in each transmission and ignores "duplicated" packets.  A packet is considered a duplicate of its predecessor if the concatenated device identifier string is repeated within 2 seconds of that predecessor.  Other recorded data (snr, etc.) are *not* compared, and for some devices that may not be desirable.  The algorithm only considers the immediate predecessor record in the JSON file, not the immediate predecessor record *for that device*, so interleaved data packets from differing devices would result in imperfect de-duplication in high-traffic regions. 
+`snr` summarizes information only for the first packet in each transmission and ignores "duplicated" packets.  A packet is considered a duplicate of its predecessor if the concatenated device identifier string is repeated within 2 seconds of that predecessor.  Other recorded data (snr, etc.) are *not* compared, and for some devices that may not be desirable.  The algorithm only considers the immediate predecessor record in the JSON file, not the immediate predecessor record *for that device*, so interleaved data packets from differing devices would result in imperfect de-duplication in high-traffic regions.
 
 ## Installation
 
@@ -61,4 +61,3 @@ This code uses Eric Raymond's mjson.c library to parse the rtl_433 JSON file and
 
 ## Author
 David Todd, hdtodd@gmail.com, 2022.05.  Updated 2023.04.
-

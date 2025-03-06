@@ -877,4 +877,3 @@ const char *json_error_string(int err)
 }
 
 /* end */
-

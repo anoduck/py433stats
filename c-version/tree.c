@@ -17,7 +17,7 @@
 char MODULE[] = "tree -- simple binary tree model";
 int node_number = 0;
 
-//  create a new attribute data node 
+//  create a new attribute data node
 APTR attr_new(void) {
   APTR p;
 #ifdef DEBUG
@@ -63,7 +63,7 @@ NPTR node_new(char *key) {
 /*
 void node_print(NPTR p) {
   if (p == NULL) printf("NULL pointer!\n");
-  else 
+  else
     printf("\tNode [%3d] @ 0x%x:%20s, cnt = %d, lptr = 0x%x, rptr = 0x%x\n",
 	   p->num, p, p->key, (p->attr)->count, p->lptr, p->rptr);
 };
@@ -86,7 +86,7 @@ NPTR node_find(NPTR root, char *key) {
       else p = p->rptr;
   };
   return(NULL);
-};  
+};
 
 // Not implemented as node_find does this
 NPTR node_insert(char *key) {

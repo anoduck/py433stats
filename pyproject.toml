@@ -1,0 +1,20 @@
+[project]
+name = "rtl_433_stats"
+version = "2.2.1"
+description = "Catalog and analyze devices recorded in rtl_433 JSON logs with Python"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[tool.pyright]
+reportOptionalMemberAccess = false
+
+[tool.ruff]
+exclude = [
+	'c-version'
+]
+line-length = 160
+indent-width = 4
+
+[tool.ruff.lint]
+ignore = ["E402"]

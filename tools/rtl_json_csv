@@ -4,8 +4,8 @@
 #   into a CSV file, with model+channel+id as device name keyword
 # Written by David Todd, hdtodd@gmail.com, 2023.03
 
-PROGNAME="rtl_json_csv"
-VERSION="2.0.0"
+PROGNAME = "rtl_json_csv"
+VERSION = "2.0.0"
 
 import sys
 import argparse
@@ -13,38 +13,33 @@ import fileinput
 import json
 from json.decoder import JSONDecodeError
 
-AP_DESCRIPTION="""
-\tExtract specified fields and their associated values from an rtl_433 JSON log 
+AP_DESCRIPTION = """
+\tExtract specified fields and their associated values from an rtl_433 JSON log
 \tfile into a CSV-format file.
 \n\tThe first field of the output file is a device identifier constructed in the
 \tformat "model/channel/id", where those fields are the standard rtl_433
-\tdevice identifiers. The other fields follow, in CSV format.  
+\tdevice identifiers. The other fields follow, in CSV format.
 \n\tThe first line is a header line that identifies the fields by name.
 \n\tIf no output file is specified, output is directed to the controlling terminal.
 """
 
-AP_EPILOG="""
+AP_EPILOG = """
 Input file specifications may be wildcard or stdin (-).  Files may be text, .gz, or .bz2.
 
 """
 
+
 ##########################################################################################
 #  Routine to reate the command parser, parse cmd line,  and set defaults
 def make_parser():
-    
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description=AP_DESCRIPTION,
-                                     epilog=AP_EPILOG)
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=AP_DESCRIPTION, epilog=AP_EPILOG)
 
-    parser.add_argument("-i", "--input", metavar="FILE", nargs="*",
-                    help="Path to JSON log files to read in; can be .gz; can be wildcard; blank if <stdin>")
-    parser.add_argument("-o", "--output",   dest="out_file",
-                        help="Path to and name of CSV file to be created")
-    parser.add_argument("-f", "--field", nargs="+", required=True,
-                        help="List of JSON field names and associated values to be extracted")
-    parser.add_argument("-T", "--include_TPMS", action='store_true',
-                        dest="include_TPMS", default=False, 
-                        help="include tire pressure monitors in output (default: %(default)s)")
+    parser.add_argument("-i", "--input", metavar="FILE", nargs="*", help="Path to JSON log files to read in; can be .gz; can be wildcard; blank if <stdin>")
+    parser.add_argument("-o", "--output", dest="out_file", help="Path to and name of CSV file to be created")
+    parser.add_argument("-f", "--field", nargs="+", required=True, help="List of JSON field names and associated values to be extracted")
+    parser.add_argument(
+        "-T", "--include_TPMS", action="store_true", dest="include_TPMS", default=False, help="include tire pressure monitors in output (default: %(default)s)"
+    )
     parser.add_argument("-d", "--debug", dest="debug", action="store_true")
 
     args = parser.parse_args()
@@ -66,7 +61,7 @@ else:
     print("stdout")
 print("include_TPMS =", args.include_TPMS)
 
-lc = 0                # line count, for error reporting
+lc = 0  # line count, for error reporting
 print("{:<40}".format("0Device_key,"), end="", file=csv)
 for f in args.field:
     print("{:>10}".format(f), end=",", file=csv)
@@ -76,7 +71,7 @@ with fileinput.FileInput(files=args.input, openhook=fileinput.hook_compressed, e
         lc += 1
         line = str.replace(line, "\x00", "", -1)
         if log.isfirstline():
-           print("Processing file", log.filename())
+            print("Processing file", log.filename())
         # unpack the record in JSON
         try:
             y = json.loads(line)
@@ -94,13 +89,13 @@ with fileinput.FileInput(files=args.input, openhook=fileinput.hook_compressed, e
             err = {}
             print("JSON error msg:", err.get("error", str(e)))
             quit()
-            
+
         #  Ignore TPMS packets if told to do so
-        if not args.include_TPMS and "type" in y and y["type"]=="TPMS":
+        if not args.include_TPMS and "type" in y and y["type"] == "TPMS":
             continue
-            
+
         # If a status record, no device "model"; ignore
-        if not "model" in y:
+        if "model" not in y:
             continue
         else:
             # Does this record have a value for a field we want?
@@ -119,7 +114,7 @@ with fileinput.FileInput(files=args.input, openhook=fileinput.hook_compressed, e
                 key += ","
                 print("{:<40}".format(key), end="", file=csv)
                 for f in args.field:
-                    print("{:>10}".format(" " if not f in y else y[f]), end=",", file=csv)
+                    print("{:>10}".format(" " if f not in y else y[f]), end=",", file=csv)
                 print(file=csv)
 
 print("\n\n", lc, "lines processed", file=sys.stdout)
