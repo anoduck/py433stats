@@ -20,7 +20,7 @@
 //  creates a new data node to hold the basic statistics data
 bstats *stats_new(void) {
   bstats *data;
-  
+
   data = (bstats *) malloc(sizeof(bstats));
   if (data == NULL) {
       fprintf(stderr, "Unable to allocate space for a stats block!");

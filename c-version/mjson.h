@@ -105,7 +105,7 @@ const char *json_error_string(int);
 #ifdef TIME_ENABLE
 extern time_t timegm(struct tm *tm);
 #endif /* TIME_ENABLE */
-    
+
 void json_enable_debug(int, FILE *);
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-rtl_433_stats: 
+rtl_433_stats:
 	Analyze rtl_433 JSON logs to catalog the devices seen and to characterize
 	statistically their signal-to-noise ratio (SNR), times between
 	transmissions (ITGT),tradio frequency (Freq), and packets per transmission (PPT).
@@ -10,10 +10,10 @@ Including Freq Stats
 Excluding TPMS devices
 Processing file xaa.json
 
-Processed 20000 Packets as 6952 De-Duplicated Transmissions in  0.22sec 
+Processed 20000 Packets as 6952 De-Duplicated Transmissions in  0.22sec
 Packets dated from Thu 2022-06-09 07:08:27 to Thu 2022-06-09 19:46:16
 
-                                         Signal-to-Noise                 Inter-Transmission Gap Time                     Frequency (MHz)                         Packets per Transmit          
+                                         Signal-to-Noise                 Inter-Transmission Gap Time                     Frequency (MHz)                         Packets per Transmit
 Device model/channel/id        _________________________________   _______________________________________   ____________________________________________   ____________________________________
                                 #Pkts   Mean ±   𝜎    Min    Max    #Gaps    Mean  ±     𝜎     Min     Max    #Pkts     Mean  ±   𝜎          Min      Max    #Xmits    Mean ±   𝜎     Min    Max
 Acurite-01185M/0/0                  4    9.6 ±  4.9   6.4   16.9        3  3678.7s ± 2812.7  434.0  5425.0        4   433.911 ±  0.017   433.902  433.936         3     1.0 ±  0.0      1      1

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # rtl_433_stats
-VERSION="2.2.0"
+VERSION = "2.2.1"
 
 # Program to catalog devices seen by rtl_433 and  to analyze and summarize
 #   device performance data.
-# This version analyzes signal-to-noise ratios (SNR), 
+# This version analyzes signal-to-noise ratios (SNR),
 #   inter-transmission gap times (ITGT), frequency variations (Freq),
 #   and packets per transmission (PPT).
 # A "transmission" is a group of one or more packets broadcast to provide information.
@@ -26,42 +26,41 @@ import math
 # Set gap time for packets to be considered to be duplicatd
 dup_thresh = 2.0
 
-AP_DESCRIPTION="""
+AP_DESCRIPTION = """
 \tAnalyze rtl_433 JSON logs to catalog the devices seen and to characterize
 \tstatistically their signal-to-noise ratio (SNR), times between
 \ttransmissions (ITGT), radio frequency (Freq), and packets per transmission (PPT).
 """
 
-AP_EPILOG="""
+AP_EPILOG = """
 Running:
     python3 rtl_433_stats [options]  [-i <JSON files or .gz files> or defaults to stdin]
 
 """
 
+
 ##########################################################################################
-# Define a class to accumulate basic statistics over a stream of data 
-class stats():
+# Define a class to accumulate basic statistics over a stream of data
+class stats:
+    def __init__(self, x):
+        self.count = 1
+        self.mean = x
+        self.std2 = 0.0
+        self.min = x
+        self.max = x
 
-   def __init__(self, x):
-      self.count = 1
-      self.mean  = x
-      self.std2  = 0.0
-      self.min   = x
-      self.max   = x
-      
-   def append(self,x):
-      self.count += 1
-      self.mean   = ((self.count-1)*self.mean + x)/self.count
-      self.std2   = 0 if self.count<2 else ( (self.count-2)*self.std2 +
-                                             (self.count*(self.mean-x)**2)/(self.count-1) )/(self.count-1)
-      if self.count > 1:
-         self.min = x if x<self.min else self.min
-         self.max = x if x>self.max else self.max
-      return
+    def append(self, x):
+        self.count += 1
+        self.mean = ((self.count - 1) * self.mean + x) / self.count
+        self.std2 = 0 if self.count < 2 else ((self.count - 2) * self.std2 + (self.count * (self.mean - x) ** 2) / (self.count - 1)) / (self.count - 1)
+        if self.count > 1:
+            self.min = x if x < self.min else self.min
+            self.max = x if x > self.max else self.max
+        return
 
-   def get(self):
-      return (self.count, self.mean, math.sqrt(self.std2), self.min, self.max)
-  
+    def get(self):
+        return (self.count, self.mean, math.sqrt(self.std2), self.min, self.max)
+
 
 ##########################################################################################
 # Define a class to hold the data for a device and procedures to create, update, access
@@ -69,15 +68,15 @@ class Data:
     def __init__(self, snr, eTime, freq, battery, status):
         self.pktcount = 1
         self.xmtcount = 0
-        self.pkt_xmt  = 1
+        self.pkt_xmt = 1
         self.last_pkt_time = eTime
         self.last_xmt_time = eTime
         self.battery = battery
         self.status = status
-        self.SNR  = None if omitSNR  else stats(snr)
+        self.SNR = None if omitSNR else stats(snr)
         self.ITGT = None
         self.Freq = None if omitFreq else stats(freq)
-        self.PPT  = None
+        self.PPT = None
         return
 
     # Update information about this device and return a
@@ -90,9 +89,9 @@ class Data:
             self.SNR.append(snr)
         if not omitITGT and not dup:
             if self.ITGT is None:
-                self.ITGT = stats(eTime-self.last_xmt_time)
+                self.ITGT = stats(eTime - self.last_xmt_time)
             else:
-                self.ITGT.append(eTime-self.last_xmt_time)
+                self.ITGT.append(eTime - self.last_xmt_time)
             self.last_xmt_time = eTime
             self.xmtcount += 1
             self.last_xmt_time = eTime
@@ -116,40 +115,57 @@ class Data:
             self.status = status
         else:
             stat_change = False
-         
+
         return (dup, batt_change, stat_change)
 
     def get(self):
-        return (self.pktcount,
-                self.xmtcount,
-                self.SNR,
-                self.ITGT,
-                self.Freq,
-                self.PPT)
+        return (self.pktcount, self.xmtcount, self.SNR, self.ITGT, self.Freq, self.PPT)
+
 
 ##########################################################################################
-#  Routine to reate the command parser, parse cmd line,  and set defaults
+#  Routine to create the command parser, parse cmd line,  and set defaults
 def make_parser():
-    
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description=AP_DESCRIPTION,
-                                     epilog=AP_EPILOG)
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=AP_DESCRIPTION,
+        epilog=AP_EPILOG,
+    )
 
-    parser.add_argument("-i", "--input", metavar="FILE", nargs="*",
-                    help="Path to JSON log files to read in; can be .gz; can be wildcard; blank if <stdin>")
-    parser.add_argument("-o", "--omit", choices=["SNR", "ITGT", "Freq", "PPT"],
-                        nargs="+")
-    parser.add_argument("-x", "--exclude_noise", type=int, dest="noise",
-                        help="Exclude device records with fewer than 'NOISE' packets seen")
-    parser.add_argument("-w", "--xmt_window", dest="window", type=float,
-                        help="Max time in sec for a packet group to be considered as one transmission (default: %(default)s)")
-    parser.add_argument("-T", "--include_TPMS", action='store_true',
-                        dest="include_TPMS", default=False, 
-                        help="include tire pressure monitors in catalog (default: %(default)s)")
+    parser.add_argument(
+        "-i",
+        "--input",
+        metavar="FILE",
+        nargs="*",
+        help="Path to JSON log files to read in; can be .gz; can be wildcard; blank if <stdin>",
+    )
+    parser.add_argument("-o", "--omit", choices=["SNR", "ITGT", "Freq", "PPT"], nargs="+")
+    parser.add_argument(
+        "-x",
+        "--exclude_noise",
+        type=int,
+        dest="noise",
+        help="Exclude device records with fewer than 'NOISE' packets seen",
+    )
+    parser.add_argument(
+        "-w",
+        "--xmt_window",
+        dest="window",
+        type=float,
+        help="Max time in sec for a packet group to be considered as one transmission (default: %(default)s)",
+    )
+    parser.add_argument(
+        "-T",
+        "--include_TPMS",
+        action="store_true",
+        dest="include_TPMS",
+        default=False,
+        help="include tire pressure monitors in catalog (default: %(default)s)",
+    )
     parser.add_argument("-v", "--version", action="version", version=VERSION)
 
     args = parser.parse_args()
     return args
+
 
 ###############################################################################
 # Convert time string (ts) from ISO format to epoch time
@@ -161,7 +177,7 @@ def CnvTime(ts):
             eTime = datetime.datetime.fromisoformat(ts).timestamp()
             timestamp = ts
         except ValueError as e:
-            err={}
+            err = {}
             print("datetime error in input line converting time string: ", ts)
             print("datetime  msg:", err.get("error", str(e)))
             sys.exit(1)
@@ -175,7 +191,9 @@ def CnvTime(ts):
             print("float() error msg:", err.get("error", str(e)))
             sys.exit(1)
 
-    return(timestamp, eTime)
+    return (timestamp, eTime)
+
+
 # End CnvTime()
 
 ##########################################################################################
@@ -185,18 +203,18 @@ start_time = time.process_time()
 print("rtl_433_stats:", AP_DESCRIPTION)
 
 args = make_parser()
-omitSNR  =  args.omit is not None and "SNR"  in args.omit
-omitITGT =  args.omit is not None and "ITGT" in args.omit
-omitFreq =  args.omit is not None and "Freq" in args.omit
-omitPPT  =  args.omit is not None and "PPT"  in args.omit
+omitSNR = args.omit is not None and "SNR" in args.omit
+omitITGT = args.omit is not None and "ITGT" in args.omit
+omitFreq = args.omit is not None and "Freq" in args.omit
+omitPPT = args.omit is not None and "PPT" in args.omit
 
-firstTime = float('inf')
-lastTime  = 0.0
+firstTime = float("inf")
+lastTime = 0.0
 DDTC = 0
 devices = {}
 
 print("Processing ISM 433MHz messages recorded by rtl_433")
-print("Including" if not omitSNR  else "Excluding", "SNR Stats")
+print("Including" if not omitSNR else "Excluding", "SNR Stats")
 print("Including" if not omitITGT else "Excluding", "ITGT Stats")
 print("Including" if not omitFreq else "Excluding", "Freq Stats")
 print("Including" if args.include_TPMS else "Excluding", "TPMS devices")
@@ -206,15 +224,21 @@ if args.noise is not None:
 else:
     noise = 0
 if args.window is not None:
-   print("Using transmission window of", args.window, "sec rather than deafult", dup_thresh, "sec")
-   dup_thresh = args.window
+    print(
+        "Using transmission window of",
+        args.window,
+        "sec rather than deafult",
+        dup_thresh,
+        "sec",
+    )
+    dup_thresh = args.window
 
-lc = 0                # line count, for error reporting
+lc = 0  # line count, for error reporting
 with fileinput.FileInput(files=args.input, openhook=fileinput.hook_compressed) as log:
-#open(args.fn,"rt") as log:
+    # open(args.fn,"rt") as log:
     for line in log:
         if log.isfirstline():
-           print("Processing file", log.filename())
+            print("Processing file", log.filename())
         lc += 1
         # strip any NUL chars from the line
         line = str.replace(line, "\x00", "", -1)
@@ -227,7 +251,7 @@ with fileinput.FileInput(files=args.input, openhook=fileinput.hook_compressed) a
             err = {}
             print("JSON error msg:", err.get("error", str(e)))
             print("\nOr are there null characters in your input file?")
-            print("On Linux, try sed \"s/\\x0//g' oldfile.json > newfile.json\" to remove them")
+            print('On Linux, try sed "s/\\x0//g\' oldfile.json > newfile.json" to remove them')
             print("On OSX/Posix, try \"tr -d '\\000' < oldfile.json > newfile.json\"")
             sys.exit(1)
         except TypeError as e:
@@ -243,11 +267,15 @@ with fileinput.FileInput(files=args.input, openhook=fileinput.hook_compressed) a
 
         #  Ignore TPMS packets if told to do so
         if not args.include_TPMS:
-            if "type" in y and y["type"]=="TPMS":
+            if "type" in y and y["type"] == "TPMS":
                 continue
-        
+
         #  Statements below make 'model'/'channel'/'id' the key for cataloging and summarizing
-        dev = y["model"] + "/"
+        if not isinstance(y["model"], str):
+            ymodel = str(y["model"])
+        else:
+            ymodel = y["model"]
+        dev = ymodel + "/"
         if "channel" in y:
             dev += str(y["channel"])
         dev += "/"
@@ -255,42 +283,56 @@ with fileinput.FileInput(files=args.input, openhook=fileinput.hook_compressed) a
             dev += str(y["id"])
 
         # Convert data values to standard form
-        (ts,eTime)   = CnvTime(y["time"])
-        snr   = 0.0 if "snr" not in y else float(y["snr"])
-        freq  = 0.0 if "freq" not in y else float(y["freq"])
+        (ts, eTime) = CnvTime(y["time"])
+        snr = 0.0 if "snr" not in y else float(y["snr"])
+        freq = 0.0 if "freq" not in y else float(y["freq"])
         battery = None if "battery_ok" not in y else y["battery_ok"]
-        status  = None if "status"     not in y else y["status"]
-        
+        status = None if "status" not in y else y["status"]
+
         # Mark earliest and latest records for reporting
         firstTime = min(eTime, firstTime)
-        lastTime  = max(eTime, lastTime)
-        
-# We keep the following counters as the file is processed:
-#   lc = the total number of packets seen, of all types
-#   DDTC = the number of de-duplicated transmissions seen
-#          Where a transmission may include 1 or up to 6 or more replicated packets
-#          Replicated packets may NOT have the same SNR or frequency and so are
-#          included in the SNR and Freq statistics.  Data fields not compared.
-#          ITGT measures the time between the first packet of one transmission
-#          and the first packet of the prior transmission.
+        lastTime = max(eTime, lastTime)
+
+        # We keep the following counters as the file is processed:
+        #   lc = the total number of packets seen, of all types
+        #   DDTC = the number of de-duplicated transmissions seen
+        #          Where a transmission may include 1 or up to 6 or more replicated packets
+        #          Replicated packets may NOT have the same SNR or frequency and so are
+        #          included in the SNR and Freq statistics.  Data fields not compared.
+        #          ITGT measures the time between the first packet of one transmission
+        #          and the first packet of the prior transmission.
 
         if dev in devices:
-            (dup, batt_change, stat_change)  = devices[dev].update(snr, eTime, freq, battery, status)
+            (dup, batt_change, stat_change) = devices[dev].update(snr, eTime, freq, battery, status)
         else:
             devices[dev] = Data(snr, eTime, freq, battery, status)
-            (dup, batt_change, stat_change)  = (False, False, False)
+            (dup, batt_change, stat_change) = (False, False, False)
         if not dup:
             DDTC += 1
         if batt_change:
             print("{:<17} to {:>3} for {:<30} at {:<25}".format("battery_ok change", battery, dev, y["time"]))
         if stat_change:
-            print("{:<17} to {:>3} for {:<30} at {:<25}".format("status change",     status,  dev, y["time"]))
-                 
+            print("{:<17} to {:>3} for {:<30} at {:<25}".format("status change", status, dev, y["time"]))
+
+# Modify firstTime and lastTime to prevent OverflowError
+print(f"Raw value for firstTime={firstTime} and lastTime={lastTime}")
+
+if firstTime == math.inf:
+    firstTime = int(1347517370)
+
 # Finished processing log files; write summary report
-print("\nProcessed", lc, "Packets as", DDTC, "De-Duplicated Transmissions",
-      "in {:>5.2f}sec".format(time.process_time()-start_time),
-      "\nPackets dated from",time.strftime("%a %Y-%m-%d %H:%M:%S",time.localtime(firstTime)),
-       "to", time.strftime("%a %Y-%m-%d %H:%M:%S",time.localtime(lastTime)))
+print(
+    "\nProcessed",
+    lc,
+    "Packets as",
+    DDTC,
+    "De-Duplicated Transmissions",
+    "in {:>5.2f}sec".format(time.process_time() - start_time),
+    "\nPackets dated from",
+    time.strftime("%a %Y-%m-%d %H:%M:%S", time.localtime(firstTime)),
+    "to",
+    time.strftime("%a %Y-%m-%d %H:%M:%S", time.localtime(lastTime)),
+)
 print()
 
 # First, the header, dependent upon cmdline options
@@ -307,25 +349,37 @@ print()
 print("{:<30} ".format("Device model/channel/id"), end="")
 
 if not omitSNR:
-    print("{:>33} ".format("_"*33), end="")
+    print("{:>33} ".format("_" * 33), end="")
 if not omitITGT:
-    print(" {:>40} ".format("_"*39), end="")
+    print(" {:>40} ".format("_" * 39), end="")
 if not omitFreq:
-    print("  {:>44}".format("_"*44), end="")
+    print("  {:>44}".format("_" * 44), end="")
 if not omitPPT:
-    print("   {:>36}".format("_"*36), end="")
+    print("   {:>36}".format("_" * 36), end="")
 print()
 
 print("{:<30} ".format(""), end="")
 if not omitSNR:
-    print("{:>6} {:>8}  {:>5}  {:>5}".format("#Pkts", "  Mean ±   𝜎", "Min", "Max"), end="")
+    print(
+        "{:>6} {:>8}  {:>5}  {:>5}".format("#Pkts", "  Mean ±   𝜎", "Min", "Max"),
+        end="",
+    )
 if not omitITGT:
-    print("  {:>7}    {:>13}   {:>5}   {:>5}".format(" #Gaps", "Mean  ±     𝜎", "Min", "Max"), end="")
+    print(
+        "  {:>7}    {:>13}   {:>5}   {:>5}".format(" #Gaps", "Mean  ±     𝜎", "Min", "Max"),
+        end="",
+    )
 if not omitFreq:
-    print("  {:>7}     {:>5}        {:>5}    {:>5}".format(" #Pkts", "Mean  ±   𝜎", "Min", "Max"), end="")
+    print(
+        "  {:>7}     {:>5}        {:>5}    {:>5}".format(" #Pkts", "Mean  ±   𝜎", "Min", "Max"),
+        end="",
+    )
 if not omitPPT:
-    print("   {:>7}    {:>5}   {:>5}  {:>5}".format("#Xmits", "Mean ±   𝜎", "Min", "Max"), end="")
-print()        
+    print(
+        "   {:>7}    {:>5}   {:>5}  {:>5}".format("#Xmits", "Mean ±   𝜎", "Min", "Max"),
+        end="",
+    )
+print()
 
 # And now the data values from the table
 for d in sorted(devices):
@@ -334,23 +388,35 @@ for d in sorted(devices):
         continue
     print("{:<30}".format(d), end="")
     if not omitSNR:
-        (n,avg,std,min,max) = SNR.get()
-        print("{:>7} {:>6.1f} ±{:>5.1f} {:>5.1f}  {:>5.1f}".format(n,avg,std,min,max), end="")
+        (n, avg, std, min, max) = SNR.get()
+        print(
+            "{:>7} {:>6.1f} ±{:>5.1f} {:>5.1f}  {:>5.1f}".format(n, avg, std, min, max),
+            end="",
+        )
     if not omitITGT:
         if ITGT is not None:
-           (n,avg,std,min,max) = ITGT.get()
+            (n, avg, std, min, max) = ITGT.get()
         else:
-           (n,avg,std,min,max) = (0,0.,0.,0.,0.)
-        print("  {:>7} {:>7.1f}s ± {:>6.1f}  {:>5.1f} {:>7.1f}".format(n,avg,std,min,max), end="")
+            (n, avg, std, min, max) = (0, 0.0, 0.0, 0.0, 0.0)
+        print(
+            "  {:>7} {:>7.1f}s ± {:>6.1f}  {:>5.1f} {:>7.1f}".format(n, avg, std, min, max),
+            end="",
+        )
     if not omitFreq:
-        (n,avg,std,min,max) = Freq.get()
-        print("  {:>7}  {:>8.3f} ± {:>6.3f}  {:>8.3f} {:>8.3f}".format(n,avg,std,min,max), end="")
+        (n, avg, std, min, max) = Freq.get()
+        print(
+            "  {:>7}  {:>8.3f} ± {:>6.3f}  {:>8.3f} {:>8.3f}".format(n, avg, std, min, max),
+            end="",
+        )
     if not omitPPT:
         if PPT is not None:
-            (n,avg,std,min,max) = PPT.get()
+            (n, avg, std, min, max) = PPT.get()
         else:
-            (n,avg,std,min,max) = (0,0.,0.,0.,0.)
-        print("   {:>7}  {:>6.1f} ± {:>4.1f}  {:>5.0f}  {:>5.0f}".format(n,avg,std,min,max), end="")
+            (n, avg, std, min, max) = (0, 0.0, 0.0, 0.0, 0.0)
+        print(
+            "   {:>7}  {:>6.1f} ± {:>4.1f}  {:>5.0f}  {:>5.0f}".format(n, avg, std, min, max),
+            end="",
+        )
     print()
 
 sys.exit(0)

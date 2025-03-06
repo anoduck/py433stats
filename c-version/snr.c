@@ -54,7 +54,7 @@ char *path = "test.json";
 char lbuf[501];
 time_t timestamp, lasttime = 0;
 char lastmodel[201] = "";
-time_t earliestDTS = (time_t) 0x7FFFFFFF;           // watch out for 64-bit time_t, negative times                            
+time_t earliestDTS = (time_t) 0x7FFFFFFF;           // watch out for 64-bit time_t, negative times
 time_t latestDTS   = (time_t) 0x00000000;
 char ft[80], lt[80];
 struct tm ts;
@@ -132,6 +132,6 @@ int main(int argc, char *argv[])
       perror(path);
       exit(EXIT_FAILURE);
     };
-    
+
     exit(EXIT_SUCCESS);
 }

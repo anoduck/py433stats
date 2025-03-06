@@ -20,11 +20,11 @@ all:	${PROJ}
 
 .SUFFIXES: .c
 
-.c.o:	
+.c.o:
 	$(CC) $(CFLAGS) -c $<
 
 ${PROJ}: ${OBJS}
-	$(CC) -o $@ ${OBJS} $(LDFLAGS) 
+	$(CC) -o $@ ${OBJS} $(LDFLAGS)
 
 clean:
 	/bin/rm -f *~ *.o ${PROJ}
@@ -35,6 +35,3 @@ install:
 
 uninstall:
 	rm ${BIN}snr
-
-
-
